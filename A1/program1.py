@@ -12,8 +12,9 @@ primitive_token_detection = re.compile('[^\s]+')
 # To Extract special tokens like . , ? / and so on...
 initials = re.compile('^[\w]\.(\w\.)*')    # S.P.   or for U.S.A. or e.g.
 titles = re.compile('[A-Z]+[a-z]*\.')     # Dr. Mr. Prof.
-punctuation = re.compile('^\W|\W$')     # non-word character at start or end of token (lower pref compared to about regexps)
 
+# non-word character at start or end of token (lower pref compared to about regexps)
+punctuation = re.compile('^\W*|\W*$')     
 
 # This function returns the primitive non space tokens
 # in the given input string
@@ -35,8 +36,15 @@ def get_special_tokens(token_list):
         titles_obj = re.findall(titles,token)
         punctuation_obj = re.findall(punctuation,token)
         if (not initials_obj) and (not titles_obj) and (punctuation_obj):
-            print "punc = ",punctuation_obj," token = "+token
-            special_tokens.extend(punctuation_obj)
+            #print "punc = ",punctuation_obj," token = "+token
+            punc_obj_noempty=[]
+            for p in punctuation_obj:
+                if p=='':
+                    continue
+                else:
+                    punc_obj_noempty.append(p)
+            print "punc_noempty = ",punc_obj_noempty," token = "+token
+            special_tokens.extend(punc_obj_noempty)
             special_tokens.append(re.sub(punctuation, "", token))
         else:
             special_tokens.append(token)
@@ -51,6 +59,8 @@ def get_sorted_tuples(freq_map):
 # This function returns a frequency dictionary of the given list
 def get_frequency_map(token_list, frequency_map = {}):
     for i in token_list:
+        if i=='':
+            continue
         if frequency_map.get(i,None):
             frequency_map[i] += 1
         else:
