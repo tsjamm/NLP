@@ -12,14 +12,14 @@ import re           # For Regex
 import operator     # For Ordering by Value
 
 # To Extract non-space charactered tokens (primitive tokens)
-primitive_token_detection = re.compile('[^\s]+')
+primitive_token_detection = re.compile('[^\s=|]+')
 
 # To Extract special tokens like . , ? / and so on...
 initials = re.compile('^[\w]\.(\w\.)*',re.U)    # S.P.   or for U.S.A. or e.g.
 titles = re.compile('[A-Z]+[a-z]*\.')     # Dr. Mr. Prof.
 
 # non-word character at start or end of token (lower pref compared to about regexps)
-#punctuation = re.compile('^\W*|\W*$')
+#punctuation = re.compile('^\W+|\W+$')
 punctuation = re.compile('^[].,<>/?!@#$%&*()~`\'\";:+={}[|\^-]+|[].,<>/?!@#$%&*()~`\'\";:+={}[|\^-]+$') 
 single_punct = re.compile('[].,<>/?!@#$%&*()~`\'\";:+={}[|\^-]')
 
@@ -119,6 +119,25 @@ def write_to_file(file_path,freq_map):
     print "Total Number of Tokens : {0}".format(total_freq)
     print "Total Number of Uniques : {0}\n".format(total_uniques)
 
+# This function takes the top 50 unique tokens and writes to file
+def write_top_50_to_file(file_path,freq_map):
+    total_freq = 0;
+    total_uniques = 0;
+    sorted_tuples = get_sorted_tuples(freq_map)
+    sorted_tuples.reverse()
+    with open(file_path,'w') as output_file:
+        for pair in sorted_tuples:
+            output_file.write("{0}\t{1}\n".format(pair[0],pair[1]))
+            total_freq += pair[1]
+            total_uniques += 1
+            if(total_uniques>=50):
+                break
+        output_file.write("Total Number of Tokens : {0}\n".format(total_freq))
+        output_file.write("Taken Top {0}\n".format(total_uniques))
+    print "Finished writing to File : "+file_path
+    print "Total Number of Tokens : {0}".format(total_freq)
+    print "Written to File Top {0}\n".format(total_uniques)
+
 # Sample line for testing
 #line = "Cats are smarte'r th-an do:gs : : : and this is another test for dogs"
 #tokens = get_primitive_tokens(line)
@@ -131,11 +150,14 @@ def write_to_file(file_path,freq_map):
 
 # For Assignment
 freq_map = frequency_from_file("English.txt")
-write_to_file("Processed2.English.txt",freq_map)
+write_to_file("Processed.English.txt",freq_map)
+write_top_50_to_file("Processed50.English.txt",freq_map)
 freq_map = frequency_from_file("Hindi.txt")
-write_to_file("Processed2.Hindi.txt",freq_map)
+write_to_file("Processed.Hindi.txt",freq_map)
+write_top_50_to_file("Processed50.Hindi.txt",freq_map)
 freq_map = frequency_from_file("Telugu.txt")
-write_to_file("Processed2.Telugu.txt",freq_map)
+write_to_file("Processed.Telugu.txt",freq_map)
+write_top_50_to_file("Processed50.Telugu.txt",freq_map)
 
 
 exit(0)
