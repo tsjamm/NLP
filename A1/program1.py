@@ -15,12 +15,15 @@ import operator     # For Ordering by Value
 primitive_token_detection = re.compile('[^\s]+')
 
 # To Extract special tokens like . , ? / and so on...
-initials = re.compile('^[\w]\.(\w\.)*')    # S.P.   or for U.S.A. or e.g.
+initials = re.compile('^[\w]\.(\w\.)*',re.U)    # S.P.   or for U.S.A. or e.g.
 titles = re.compile('[A-Z]+[a-z]*\.')     # Dr. Mr. Prof.
 
 # non-word character at start or end of token (lower pref compared to about regexps)
-#punctuation = re.compile('^\W*|\W*$') 
+#punctuation = re.compile('^\W*|\W*$')
 punctuation = re.compile('^[].,<>/?!@#$%&*()~`\'\";:+={}[|\^-]+|[].,<>/?!@#$%&*()~`\'\";:+={}[|\^-]+$') 
+single_punct = re.compile('[].,<>/?!@#$%&*()~`\'\";:+={}[|\^-]')
+
+hindi_punct = re.compile(u'[\u0964\u0965]')
 
 # This function returns the primitive non space tokens
 # in the given input string
@@ -44,9 +47,23 @@ def get_special_tokens(token_list):
         #print "titles_obj = ",titles_obj," token = "+token
         punctuation_obj = re.findall(punctuation,token)
         #print "punctuation_obj = ",punctuation_obj," token = "+token
+        hindi_punct_obj = re.findall(hindi_punct,token)
+        #print "hindi_punct_obj = ",hindi_punct_obj," token = "+token
+        
+        if hindi_punct_obj:
+            for h_punct_token in hindi_punct_obj:
+                special_tokens.append(h_punct_token)
+                token = re.sub(h_punct_token, "", token)
+        
         if (not initials_obj) and (not titles_obj) and (punctuation_obj):
             #print "punc = ",punctuation_obj," token = "+token
-            special_tokens.extend(punctuation_obj)
+            for punct_token in punctuation_obj:
+                single_punct_obj = re.findall(single_punct, punct_token)
+                if single_punct_obj:
+                    special_tokens.extend(single_punct_obj)
+                else:
+                    special_tokens.append(punct_token)
+            #special_tokens.extend(punctuation_obj) #not necessary since above for loop
             special_tokens.append(re.sub(punctuation, "", token))
         else:
             special_tokens.append(token)
@@ -99,6 +116,8 @@ def write_to_file(file_path,freq_map):
         output_file.write("Total Number of Tokens : {0}\n".format(total_freq))
         output_file.write("Total Number of Uniques : {0}\n".format(total_uniques))
     print "Finished writing to File : "+file_path
+    print "Total Number of Tokens : {0}".format(total_freq)
+    print "Total Number of Uniques : {0}\n".format(total_uniques)
 
 # Sample line for testing
 #line = "Cats are smarte'r th-an do:gs : : : and this is another test for dogs"
@@ -111,12 +130,12 @@ def write_to_file(file_path,freq_map):
 #write_to_file("testfile.processed.txt",freq_map)
 
 # For Assignment
-freq_map = frequency_from_file("EnglishMonoLingData.txt")
-write_to_file("Processed.EnglishMonoLingData.txt",freq_map)
-freq_map = frequency_from_file("hindimonolingual.txt")
-write_to_file("Processed.hindimonolingual.txt",freq_map)
-freq_map = frequency_from_file("telugu_sentences.txt")
-write_to_file("Processed.telugu_sentences.txt",freq_map)
+freq_map = frequency_from_file("English.txt")
+write_to_file("Processed2.English.txt",freq_map)
+freq_map = frequency_from_file("Hindi.txt")
+write_to_file("Processed2.Hindi.txt",freq_map)
+freq_map = frequency_from_file("Telugu.txt")
+write_to_file("Processed2.Telugu.txt",freq_map)
 
 
 exit(0)
