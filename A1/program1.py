@@ -97,8 +97,11 @@ def get_special_tokens(token_list):
                 
         if (not punctuation_obj) and (not hindi_punct_obj):
             special_tokens.append(token)
-
-    return special_tokens
+    to_return = []
+    for st in special_tokens:
+        if st != "" and st!=" ":
+            to_return.append(st)
+    return to_return
             
 
 # This function returns a list of sorted tuples
@@ -146,8 +149,8 @@ def write_rank_to_file(file_path,freq_map):
     print "Finished writing to File : "+file_path
     print "Total Number of lines : {0}".format(total_count)
 
-# This function takes the top 50 unique tokens and writes to file
-def write_top_50_to_file(file_path,freq_map):
+# This function takes the top 200 unique tokens and writes to file
+def write_top_200_to_file(file_path,freq_map):
     total_freq = 0;
     total_uniques = 0;
     sorted_tuples = get_sorted_tuples(freq_map)
@@ -157,13 +160,53 @@ def write_top_50_to_file(file_path,freq_map):
             output_file.write("{0}\t{1}\n".format(pair[0],pair[1]))
             total_freq += pair[1]
             total_uniques += 1
-            if(total_uniques>=50):
+            if(total_uniques>=200):
                 break
         output_file.write("Total Number of Tokens : {0}\n".format(total_freq))
         output_file.write("Taken Top {0}\n".format(total_uniques))
     print "Finished writing to File : "+file_path
     print "Total Number of Tokens : {0}".format(total_freq)
     print "Written to File Top {0}\n".format(total_uniques)
+
+# This function takes the last 200 unique tokens and writes to file
+def write_last_200_to_file(file_path,freq_map):
+    total_freq = 0;
+    total_uniques = 0;
+    sorted_tuples = get_sorted_tuples(freq_map)
+    sorted_tuples.reverse()
+    length = len(sorted_tuples);
+    with open(file_path,'w') as output_file:
+        for pair in sorted_tuples:
+            if(total_uniques>length-200):
+                output_file.write("{0}\t{1}\n".format(pair[0],pair[1]))
+            total_freq += pair[1]
+            total_uniques += 1
+        output_file.write("Total Number of Tokens : {0}\n".format(total_freq))
+        output_file.write("Taken Last {0}\n".format(total_uniques))
+    print "Finished writing to File : "+file_path
+    print "Total Number of Tokens : {0}".format(total_freq)
+    print "Written to File Last {0}\n".format(total_uniques)
+
+# This function takes the middle 200 unique tokens and writes to file
+def write_middle_200_to_file(file_path,freq_map):
+    total_freq = 0;
+    total_uniques = 0;
+    sorted_tuples = get_sorted_tuples(freq_map)
+    sorted_tuples.reverse()
+    length = len(sorted_tuples);
+    middle_length = length/2;
+    with open(file_path,'w') as output_file:
+        for pair in sorted_tuples:
+            if (total_uniques>middle_length-100) and (total_uniques<middle_length+100):
+                output_file.write("{0}\t{1}\n".format(pair[0],pair[1]))
+            total_freq += pair[1]
+            total_uniques += 1
+        output_file.write("Total Number of Tokens : {0}\n".format(total_freq))
+        output_file.write("Middle ={0}::::Taken Middle {1}\n".format(middle_length,total_uniques))
+    print "Finished writing to File : "+file_path
+    print "Total Number of Tokens : {0}".format(total_freq)
+    print "Written to File Middle {0}\n".format(total_uniques)
+
 
 # ngram Generation from unigrams
 def get_n_grams(n, unigrams):
@@ -218,7 +261,15 @@ def process_file(file_path):
     write_to_file("Processed.Frequency.Unigrams."+file_path,freq_map)
     write_to_file("Processed.Frequency.Bigrams."+file_path,freq_map_b)
     write_to_file("Processed.Frequency.Trigrams."+file_path,freq_map_t)
-    write_top_50_to_file("Processed.Top50."+file_path,freq_map)
+    write_top_200_to_file("Processed.200TopUnigrams."+file_path,freq_map)
+    write_last_200_to_file("Processed.200LastUnigrams."+file_path,freq_map)
+    write_middle_200_to_file("Processed.200MiddleUnigrams."+file_path,freq_map)
+    write_top_200_to_file("Processed.200TopBigrams."+file_path,freq_map_b)
+    write_last_200_to_file("Processed.200LastBigrams."+file_path,freq_map_b)
+    write_middle_200_to_file("Processed.200MiddleBigrams."+file_path,freq_map_b)
+    write_top_200_to_file("Processed.200TopTrigrams."+file_path,freq_map_t)
+    write_last_200_to_file("Processed.200LastTrigrams."+file_path,freq_map_t)
+    write_middle_200_to_file("Processed.200MiddleTrigrams."+file_path,freq_map_t)
     write_list_to_file("Processed.Unigrams."+file_path,unigrams)
     write_list_to_file("Processed.Bigrams."+file_path,bigrams)
     write_list_to_file("Processed.Trigrams."+file_path,trigrams)
