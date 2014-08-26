@@ -7,6 +7,8 @@
 
 # This is a primitive program that parses a given text into tokens
 # Using Regular Expressions
+# It contains miscellaneous functions such as calculating freq maps
+
 
 import re           # For Regex
 import operator     # For Ordering by Value
@@ -276,24 +278,69 @@ def process_file(file_path):
     write_rank_to_file("Processed.Ranks.Unigrams."+file_path,freq_map)
     write_rank_to_file("Processed.Ranks.Bigrams."+file_path,freq_map_b)
     write_rank_to_file("Processed.Ranks.Trigrams."+file_path,freq_map_t)
+    
+    
+# This function reads a given file line by line and processes the tokenization
+def get_frequency_map_from_file(file_path):
+    freq_map = {}
+    total_freq = 0;
+    total_uniques = 0;
+    with open(file_path) as input_file:
+        for input_line in input_file:
+            input_tokens = get_primitive_tokens(input_line)
+            input_tokens = get_special_tokens(input_tokens)
+            total_freq += len(input_tokens)
+            freq_map = get_frequency_map(input_tokens,freq_map)
+    total_uniques = len(freq_map)
+    print "Total Uniques : {0}".format(total_uniques)
+    print "Total Number of Tokens : {0}".format(total_freq)
+    return freq_map
 
-# Sample line for testing
-#line = "Cats are smarte's th-an do:gs : : : and this is another test for dogs"
-#tokens = get_primitive_tokens(line)
-#tokens = get_special_tokens(tokens)
-#print tokens
-#freq_map = get_frequency_map(tokens)
+# This function reads a given file line by line and processes the tokenization
+def get_bigram_frequency_map_from_file(file_path):
+    freq_map = {}
+    total_freq = 0;
+    total_uniques = 0;
+    with open(file_path) as input_file:
+        for input_line in input_file:
+            input_tokens = get_primitive_tokens(input_line)
+            input_tokens = get_special_tokens(input_tokens)
+            input_bigrams = get_n_grams(2, input_tokens)
+            total_freq += len(input_bigrams)
+            freq_map = get_frequency_map(input_bigrams,freq_map)
+    total_uniques = len(freq_map)
+    print "Total Uniques : {0}".format(total_uniques)
+    print "Total Number of Bigrams : {0}".format(total_freq)
+    return freq_map
 
-# Calculating Frequency of Tokens
-#freq_map = frequency_from_file("testfile.txt")
-#write_to_file("testfile.processed.txt",freq_map)
-#process_file("testfile.txt")
+# This function returns the top n unique tokens
+def return_top_n_tuples(freq_map,n):
+    total_freq = 0;
+    total_uniques = 0;
+    sorted_tuples = get_sorted_tuples(freq_map)
+    sorted_tuples.reverse()
+    to_return_tuples = []
+    for pair in sorted_tuples:
+        to_return_tuples.append(pair)
+        total_freq += pair[1]
+        total_uniques += 1
+        if(total_uniques>=n):
+            break
+    print "Total Number of Tokens : {0}".format(total_freq)
+    print "Returning Top {0}\n".format(total_uniques)
+    return to_return_tuples
 
-# For Assignment
-process_file("English.txt")
-process_file("Hindi.txt")
-process_file("Telugu.txt")
+# This function writes a tuples list to file
+def write_tuples_to_file(file_path,tuple_list):
+    total_freq = 0;
+    total_uniques = 0;
+    with open(file_path,'w') as output_file:
+        for pair in tuple_list:
+            output_file.write("{0}\t{1}\n".format(pair[0],pair[1]))
+            total_freq += pair[1]
+            total_uniques += 1
+    print "Finished writing to File : "+file_path
+    print "Total Number of Tokens : {0}".format(total_freq)
+    print "Total Number of Uniques : {0}\n".format(total_uniques)
 
-
-exit(0)
 
