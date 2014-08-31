@@ -311,40 +311,56 @@ class KMeans(object):
         self.oldmu = random.sample(X, K)
         self.clusters = {}
         self.iterations = 0;
+        self.zero_iterations = 0;
         #Invoking the KMeans
         self.find_centers()
 
     def find_centers(self):
-        while not self.has_converged(self.mu, self.oldmu):
+        while not self.has_converged():
             print "This is iteration {0}".format(self.iterations)
             self.oldmu = self.mu
             # Assign all points in X to clusters
-            self.cluster_points() 
+            self.cluster_points()
             # Reevaluate centers
-            self.reevaluate_centers() 
+            self.reevaluate_centers()
+            # Making sure there are no zero clusters...
+            while len(self.mu) < self.K :
+                for mi, m in enumerate(self.oldmu):
+                    try:
+                        self.clusters[mi]
+                    except KeyError:
+                        self.mu.append(random.sample(self.X, 1)[0])
+                self.cluster_points();
+                self.zero_iterations+=1
+            
+            print "Zero Cluster Removal iterations = {0}".format(self.zero_iterations)
+            
             self.iterations+=1
-        return(self.mu, self.clusters)
+        print "Has Converged....."
     
     def cluster_points(self):
         X = self.X
         mu = self.mu
         clusters  = {}
-        for i in range(0,len(X)):
-            x=X[i];
+        for xi in range(0,len(X)):
+            x=X[xi];
             bestmukey = min([(i[0], linalg.norm(x-mu[i[0]])) for i in enumerate(mu)], key=lambda t:t[1])[0]
             try:
-                clusters[bestmukey].append(i)
+                clusters[bestmukey].append(xi)
             except KeyError:
-                clusters[bestmukey] = [i]
+                clusters[bestmukey] = [xi]            
         self.clusters = clusters
     
     def reevaluate_centers(self):
         newmu = []
         keys = sorted(self.clusters.keys())
         for k in keys:
-            newmu.append(mean(self.clusters[k], axis = 0))
+            cluster_points = []
+            for index in self.clusters[k]:
+                cluster_points.append(self.X[index])
+            newmu.append(mean(cluster_points, axis = 0))
         self.mu = newmu
     
     def has_converged(self):
-        toReturn = (set([tuple(a) for a in self.mu]) == set([tuple(a) for a in self.oldmu]))
+        toReturn = (set([tuple(a.tolist()) for a in self.mu]) == set([tuple(a.tolist()) for a in self.oldmu]))
         return toReturn

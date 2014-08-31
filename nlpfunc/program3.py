@@ -8,5 +8,23 @@
 # program 3 - Smoothing and language modeling
 
 import nlpfunc
+import time
 
 print "Runnning Program 3...."
+starttime = time.asctime( time.localtime(time.time()) )
+print "Start Time :", starttime
+
+
+def process_file(file_path,file_name):
+    
+
+
+#For Assignment
+process_file("../Datasets/Toy_Data.txt", "ToyData")
+
+
+endtime = time.asctime( time.localtime(time.time()) )
+print "Start Time :", starttime
+print "End Time :", endtime
+
+exit(0)

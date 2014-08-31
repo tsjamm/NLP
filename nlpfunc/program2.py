@@ -10,12 +10,14 @@
 # Then tries to apply k-means
 
 import nlpfunc
-
+import time
 from numpy import array
 
 import os.path
 
 print "Runnning Program 2...."
+starttime = time.asctime( time.localtime(time.time()) )
+print "Start Time :", starttime
 
 def process_file(file_path,file_name, n_tuples, k_clusters):
     freq_map = nlpfunc.get_frequency_map_from_file(file_path)
@@ -101,14 +103,29 @@ def process_file(file_path,file_name, n_tuples, k_clusters):
         model_points.append(array(model[key]))
     
     kMeans = nlpfunc.KMeans(model_points, k_clusters)
-    print "mu is {0}".format(kMeans.mu)
+    #print "mu is {0}".format(kMeans.mu)
     print "number of clusters are {0}".format(len(kMeans.clusters))
-
-
+    
+    with open(d+"Processed.clusters."+file_name,'w') as output_file:
+        for ci in kMeans.clusters:
+            print "Cluster {0} contains {1} tokens.......................".format(ci,len(kMeans.clusters[ci]))
+            line = ""
+            for i in kMeans.clusters[ci]:
+                line += model_keys[i]+" "
+            print line
+            output_file.write(line+"\n")
+    
+    
+    
 
 #For Assignment
 #process_file("../Datasets/Toy_Data.txt", "ToyData", 10, 5)
 process_file("../Datasets/Telugu.txt", "Telugu", 250, 50)
+
+
+endtime = time.asctime( time.localtime(time.time()) )
+print "Start Time :", starttime
+print "End Time :", endtime
 
 exit(0)
 
