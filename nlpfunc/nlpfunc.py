@@ -156,20 +156,17 @@ def write_top_n_to_file(file_path,freq_map, top_n):
             output_file.write("{0}\t{1}\n".format(pair[0].encode("utf-8"),pair[1]))
     print "Finished writing to File : "+file_path
 
-# This function returns the top n unique tokens
+# This function returns the top n tuples in a freq map
 def return_top_n_tuples(freq_map,n):
-    total_freq = 0;
     total_uniques = 0;
     sorted_tuples = get_sorted_tuples(freq_map)
     sorted_tuples.reverse()
     to_return_tuples = []
     for pair in sorted_tuples:
         to_return_tuples.append(pair)
-        total_freq += pair[1]
         total_uniques += 1
         if(total_uniques>=n):
             break
-    print "Total Number of Tokens : {0}".format(total_freq)
     print "Returning Top {0}\n".format(total_uniques)
     return to_return_tuples
 
@@ -310,6 +307,7 @@ class KMeans(object):
         self.mu = random.sample(X, K)
         self.oldmu = random.sample(X, K)
         self.clusters = {}
+        self.pruned_clusters = {}
         self.iterations = 0;
         self.zero_iterations = 0;
         #Invoking the KMeans
@@ -364,3 +362,23 @@ class KMeans(object):
     def has_converged(self):
         toReturn = (set([tuple(a.tolist()) for a in self.mu]) == set([tuple(a.tolist()) for a in self.oldmu]))
         return toReturn
+    
+    def prune_clusters(self,max_num_per_cluster):
+        for ci in self.clusters:
+            self.pruned_clusters[ci] = []
+            cluster_length = len(self.clusters[ci])
+            if cluster_length <= max_num_per_cluster:
+                self.pruned_clusters[ci] = self.clusters[ci]
+                continue
+            centroid = self.mu[ci]
+            dist_map = {}
+            for i in self.clusters[ci]:
+                point = self.X[i]
+                dist_map[i] = linalg.norm(point-centroid)
+            top_max = return_top_n_tuples(dist_map, max_num_per_cluster)
+            
+            for pair in top_max:
+                index = pair[0]
+                self.pruned_clusters[ci].append(index);
+            
+            

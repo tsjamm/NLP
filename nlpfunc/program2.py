@@ -19,7 +19,7 @@ print "Runnning Program 2...."
 starttime = time.asctime( time.localtime(time.time()) )
 print "Start Time :", starttime
 
-def process_file(file_path,file_name, n_tuples, k_clusters):
+def process_file(file_path,file_name, n_tuples, k_clusters, max_num_per_cluster):
     freq_map = nlpfunc.get_frequency_map_from_file(file_path)
     tuple_list = nlpfunc.return_top_n_tuples(freq_map, n_tuples)
     del freq_map # Memory problems...
@@ -115,12 +115,24 @@ def process_file(file_path,file_name, n_tuples, k_clusters):
             #print line
             output_file.write(line+"\n")
     
+    #this method identifies <max_num_per_cluster> words nearest to centroid
+    kMeans.prune_clusters(max_num_per_cluster)
+    with open(d+"Processed.clusters_"+str(max_num_per_cluster)+"wordsMax."+file_name,'w') as output_file:
+        for ci in kMeans.pruned_clusters:
+            print "Cluster {0} contains {1} tokens.......................".format(ci,len(kMeans.pruned_clusters[ci]))
+            line = ""
+            for i in kMeans.pruned_clusters[ci]:
+                line += model_keys[i]+" "
+            #print line
+            output_file.write(line+"\n")
     
     
 
 #For Assignment
-#process_file("../Datasets/Toy_Data.txt", "ToyData", 10, 5)
-process_file("../Datasets/Telugu.txt", "Telugu", 250, 50)
+process_file("../Datasets/Toy_Data.txt", "ToyData", 10, 5, 5)
+#process_file("../Datasets/Telugu.txt", "Telugu", 250, 50, 25)
+#process_file("../Datasets/English.txt", "English", 250, 50, 25)
+#process_file("../Datasets/Hindi.txt", "Hindi", 250, 50, 25)
 
 
 endtime = time.asctime( time.localtime(time.time()) )
