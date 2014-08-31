@@ -17,9 +17,9 @@ import os.path
 
 print "Runnning Program 2...."
 
-def process_file(file_path,file_name,n_tuples):
+def process_file(file_path,file_name, n_tuples, k_clusters):
     freq_map = nlpfunc.get_frequency_map_from_file(file_path)
-    tuple_list = nlpfunc.return_top_n_tuples(freq_map,n_tuples)
+    tuple_list = nlpfunc.return_top_n_tuples(freq_map, n_tuples)
     del freq_map # Memory problems...
     
     # Need to construct co-occurrance matrix
@@ -100,16 +100,15 @@ def process_file(file_path,file_name,n_tuples):
         model_keys.append(key)
         model_points.append(array(model[key]))
     
-    kMeans = nlpfunc.KMeans()
-    returned_tuple = kMeans.find_centers(model_points,50)
-    print "mu is {0}".format(returned_tuple[0])
-    print "number of clusters are {0}".format(len(returned_tuple[1]))
+    kMeans = nlpfunc.KMeans(model_points, k_clusters)
+    print "mu is {0}".format(kMeans.mu)
+    print "number of clusters are {0}".format(len(kMeans.clusters))
 
 
 
 #For Assignment
-#process_file("../Datasets/Toy_Data.txt", "ToyData",10)
-process_file("../Datasets/Telugu.txt", "Telugu",250)
+#process_file("../Datasets/Toy_Data.txt", "ToyData", 10, 5)
+process_file("../Datasets/Telugu.txt", "Telugu", 250, 50)
 
 exit(0)
 

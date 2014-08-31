@@ -301,36 +301,50 @@ def get_ngram_frequency_map_from_file(file_path,ngram):
 
 
 # K-Means clustering
-class KMeans(object):        
-    def find_centers(self, X, K):
+class KMeans(object):
+    
+    def __init__(self, X, K):
+        self.X = X
+        self.K = K
         # Initialize to K random centers
-        oldmu = random.sample(X, K)
-        mu = random.sample(X, K)
-        while not self.has_converged(mu, oldmu):
-            oldmu = mu
-            clusters = self.cluster_points(X, mu) # Assign all points in X to clusters
-            mu = self.reevaluate_centers(oldmu, clusters) # Reevaluate centers
-        return(mu, clusters)
+        self.mu = random.sample(X, K)
+        self.oldmu = random.sample(X, K)
+        self.clusters = {}
+        self.iterations = 0;
+        #Invoking the KMeans
+        self.find_centers()
+
+    def find_centers(self):
+        while not self.has_converged(self.mu, self.oldmu):
+            print "This is iteration {0}".format(self.iterations)
+            self.oldmu = self.mu
+            # Assign all points in X to clusters
+            self.cluster_points() 
+            # Reevaluate centers
+            self.reevaluate_centers() 
+            self.iterations+=1
+        return(self.mu, self.clusters)
     
-    def cluster_points(self, X, mu):
+    def cluster_points(self):
+        X = self.X
+        mu = self.mu
         clusters  = {}
-        for x in X:
-            bestmukey = min([(i[0], linalg.norm(x-mu[i[0]])) \
-                        for i in enumerate(mu)], \
-                        key=lambda t:t[1])[0]
+        for i in range(0,len(X)):
+            x=X[i];
+            bestmukey = min([(i[0], linalg.norm(x-mu[i[0]])) for i in enumerate(mu)], key=lambda t:t[1])[0]
             try:
-                clusters[bestmukey].append(x)
+                clusters[bestmukey].append(i)
             except KeyError:
-                clusters[bestmukey] = [x]
-        return clusters
+                clusters[bestmukey] = [i]
+        self.clusters = clusters
     
-    def reevaluate_centers(self, mu, clusters):
+    def reevaluate_centers(self):
         newmu = []
-        keys = sorted(clusters.keys())
+        keys = sorted(self.clusters.keys())
         for k in keys:
-            newmu.append(mean(clusters[k], axis = 0))
-        return newmu
+            newmu.append(mean(self.clusters[k], axis = 0))
+        self.mu = newmu
     
-    def has_converged(self, mu, oldmu):
-        toReturn = (set([tuple(a) for a in mu]) == set([tuple(a) for a in oldmu]))
+    def has_converged(self):
+        toReturn = (set([tuple(a) for a in self.mu]) == set([tuple(a) for a in self.oldmu]))
         return toReturn
