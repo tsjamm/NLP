@@ -112,7 +112,7 @@ def process_file(file_path,file_name, n_tuples, k_clusters):
             line = ""
             for i in kMeans.clusters[ci]:
                 line += model_keys[i]+" "
-            print line
+            #print line
             output_file.write(line+"\n")
     
     
