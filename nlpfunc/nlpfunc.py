@@ -381,4 +381,254 @@ class KMeans(object):
                 index = pair[0]
                 self.pruned_clusters[ci].append(index);
             
+# Basic Laplace Smoothing Maximum Likelihood Estimation
+class BasicLaplaceSmoothing(object):
+    
+    def __init__(self,unigrams,ufreq,bfreq,tfreq):
+        self.unigrams = unigrams
+        self.uni_freq = ufreq
+        self.bi_freq = bfreq
+        self.tri_freq = tfreq
+    
+    #Calculates the individual probability of a trigram
+    def calc_probability(self,trigram):
+        # Add-One Smoothing
+        numerator = 1.0
+        # Adding V^3
+        denominator = pow(len(self.uni_freq),3)
+        
+        tri = ' '.join(trigram)
+        bi = ' '.join(trigram[0:2])
+        
+        if tri in self.tri_freq:
+            # c(wi-2, wi-1, wi) + 1.0
+            numerator += self.tri_freq[tri] 
+        
+        if bi in self.bi_freq:
+            # c(wi-2, wi-1) + V
+            denominator += self.bi_freq[bi] 
+        
+        probability = (numerator/denominator)
+        return probability
+    
+    #Estimates the likelihood for a sentence
+    def estimate_likelihood(self,trigrams):
+        if len(trigrams) == 0:
+            return 0.0
+        probability = 1.0
+        for trigram in trigrams:
+            probability *= self.calc_probability(trigram)
+        return probability
+
+# Basic Good Turing Smoothing Maximum Likelihood Estimation
+class BasicGoodTuringSmoothing(object):
+    
+    def __init__(self,unigrams,ufreq,bfreq,tfreq):
+        self.unigrams = unigrams
+        self.bins = {}
+        self.unseen_probability = 0.0
+        self.uni_freq = ufreq
+        self.bi_freq = bfreq
+        self.tri_freq = tfreq
+        #Initializing Bins
+        self.classify_bins()
+    
+    def classify_bins(self):
+        for key in self.tri_freq:
+            count = self.tri_freq[key]
             
+            if count in self.bins:
+                self.bins[count] += 1
+            else:
+                self.bins[count] = 1
+        # N1/N, 0.0 for float
+        self.unseen_probability = (self.bins[1] + 0.0) / (len(self.tri_freq)) 
+    
+    #Calculates the individual probability of a trigram
+    def calc_probability(self,trigram):
+        tri = ' '.join(trigram)
+        
+        if tri in self.tri_freq:
+            c = self.tri_freq[tri]
+            c_plus1 = c+1
+            
+            if c_plus1 in self.bins:
+                # N sub c+1 exists
+                nc_plus1 = self.bins[c_plus1]
+                # N sub c 
+                nc = self.bins[c] 
+                
+                # c* = (c+1) * Nc+1 / Nc
+                c_star = (c_plus1 + 0.0) * nc_plus1 / nc
+                # p(w) = c* / N
+                probability = c_star / len(self.tri_freq)
+                
+                return probability
+            else:
+                # N sub c+1 = 0
+                return self.unseen_probability 
+        else:
+            # trigram is unseen and new
+            return self.unseen_probability        
+        
+        
+        return probability
+    
+    #Estimates the likelihood for a sentence
+    def estimate_likelihood(self,trigrams):
+        if len(trigrams) == 0:
+            return 0.0
+        probability = 1.0
+        for trigram in trigrams:
+            probability *= self.calc_probability(trigram)
+        return probability
+    
+# Linear Interpolation Back-Off Laplace Smoothing Maximum Likelihood Estimation
+class IBOLaplaceSmoothing(object):
+    
+    def __init__(self,unigrams,ufreq,bfreq,tfreq):
+        self.unigrams = unigrams
+        self.total_count = len(unigrams)
+        self.vocabulary = {}
+        self.vocabulary[1] = ufreq
+        self.vocabulary[2] = bfreq
+        self.vocabulary[3] = tfreq
+        self.unique_count = {}
+        self.unique_count[1] = len(self.vocabulary[1]) # N for unigrams
+        self.unique_count[2] = len(self.vocabulary[2]) # N for bigrams
+        self.unique_count[3] = len(self.vocabulary[3]) # N for trigrams
+        self.lambda_t = 0.5 #trigram Lambda
+        self.lambda_b = 0.3 #bigram Lambda
+        self.lambda_u = 0.2 #unigram Lambda
+    
+    #Calculates the individual probability of an ngram
+    def calc_probability(self, ngram, n):
+        # Add-One Smoothing
+        numerator = 1.0
+        # Adding V
+        denominator = self.unique_count[1]
+        
+        # sequence used in numerator
+        num_seq = ''
+        # sequence used in denominator
+        denom_seq = ''
+        
+        if n == 1:
+            # use unigram
+            num_seq = ngram[0]
+            # N + V
+            denominator += self.total_count
+        else:
+            # c(wi-n...wi)
+            num_seq = ' '.join(ngram)
+            
+            if n == 2:
+                # c(wi-1)
+                denom_seq = ngram[0]
+            else: # if n == 3:
+                # c(wi-1,wi)
+                denom_seq = ' '.join(ngram[0:2])
+        
+            if denom_seq in self.vocabulary[n-1]:
+                # c(wi-2,wi-1) + V
+                denominator += self.vocabulary[n-1][denom_seq]
+        
+        if num_seq in self.vocabulary[n]:
+            # c(wi-n...wi) + 1.0 , to convert to float
+            numerator += self.vocabulary[n][num_seq]
+        
+        probability = (numerator/denominator)
+        return probability
+    
+    # Performs the Interpolation and returns probability
+    def perform_interpolation(self,trigram):
+        probability = 0.0
+        probability += (self.lambda_t * self.calc_probability(trigram,3))
+        probability += (self.lambda_b * self.calc_probability(trigram[-2:],2))
+        probability += (self.lambda_u * self.calc_probability(trigram[-1:],1))
+        return probability
+    
+    #Estimates the likelihood for a sentence
+    def estimate_likelihood(self,trigrams):
+        if len(trigrams) == 0:
+            return 0.0
+        probability = 1.0
+        for trigram in trigrams:
+            probability *= self.perform_interpolation(trigram)
+        return probability
+    
+# Linear Interpolation Back-Off GoodTuring Smoothing Maximum Likelihood Estimation
+class IBOGoodTuringSmoothing(object):
+    
+    def __init__(self,unigrams,ufreq,bfreq,tfreq):
+        self.unigrams = unigrams
+        self.bins = {}
+        self.vocabulary = {}
+        self.vocabulary[1] = ufreq
+        self.vocabulary[2] = bfreq
+        self.vocabulary[3] = tfreq
+        self.unique_count = {}
+        self.unique_count[1] = len(self.vocabulary[1]) # N for unigrams
+        self.unique_count[2] = len(self.vocabulary[2]) # N for bigrams
+        self.unique_count[3] = len(self.vocabulary[3]) # N for trigrams
+        self.lambda_t = 0.5 #trigram Lambda
+        self.lambda_b = 0.3 #bigram Lambda
+        self.lambda_u = 0.2 #unigram Lambda
+        #Classifying Bins
+        self.classify_bins()
+    
+    def classify_bins(self):
+        self.unseen_probability = {}
+        
+        for index in range(0,len(self.vocabulary)):
+            ngram_order = index+1
+            self.bins[ngram_order] = {} 
+            
+            for key in self.vocabulary[ngram_order]:
+                count = self.vocabulary[ngram_order][key]
+                
+                if count in self.bins[ngram_order]:
+                    self.bins[ngram_order][count] += 1
+                else:
+                    self.bins[ngram_order][count] = 1
+            
+            self.unseen_probability[ngram_order] = (self.bins[ngram_order][1] + 0.0) / (self.unique_count[ngram_order]) # N1/N , converting to float by adding 0.0
+    
+    
+    #Calculates the individual probability of an ngram
+    def calc_probability(self,ngram,n):
+        sequence = ' '.join(ngram)
+        
+        if sequence in self.vocabulary[n]:
+            c = self.vocabulary[n][sequence] # c
+            cplus1 = c + 1 # c+1
+            
+            if cplus1 in self.bins[n]:
+                ncplus1 = self.bins[n][cplus1] # N sub c+1 exists
+                nc = self.bins[n][c] # N sub c
+                
+                cstar = (cplus1 + 0.0) * ncplus1 / nc # c* = (c+1) * Nc+1 / Nc
+                probability = cstar / self.unique_count[n] # p(w) = c* / N
+                
+                return probability
+            else:
+                return self.unseen_probability[1] # N sub c+1 = 0
+        else:
+            return self.unseen_probability[1] # trigram is unseen and new
+    
+    # Performs the Interpolation and returns probability
+    def perform_interpolation(self,trigram):
+        probability = 0.0
+        probability += (self.lambda_t * self.calc_probability(trigram,3))
+        probability += (self.lambda_b * self.calc_probability(trigram[-2:],2))
+        probability += (self.lambda_u * self.calc_probability(trigram[-1:],1))
+        return probability
+    
+    #Estimates the likelihood for a sentence
+    def estimate_likelihood(self,trigrams):
+        if len(trigrams) == 0:
+            return 0.0
+        probability = 1.0
+        for trigram in trigrams:
+            probability *= self.perform_interpolation(trigram)
+        return probability

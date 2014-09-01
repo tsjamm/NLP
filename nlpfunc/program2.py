@@ -129,9 +129,9 @@ def process_file(file_path,file_name, n_tuples, k_clusters, max_num_per_cluster)
     
 
 #For Assignment
-process_file("../Datasets/Toy_Data.txt", "ToyData", 10, 5, 5)
+#process_file("../Datasets/Toy_Data.txt", "ToyData", 10, 5, 5)
 #process_file("../Datasets/Telugu.txt", "Telugu", 250, 50, 25)
-#process_file("../Datasets/English.txt", "English", 250, 50, 25)
+process_file("../Datasets/English.txt", "English", 250, 50, 25)
 #process_file("../Datasets/Hindi.txt", "Hindi", 250, 50, 25)
 
 
