@@ -84,7 +84,7 @@ def process_file(file_path,file_name, n_tuples, k_clusters, max_num_per_cluster)
     
     print "Done Calculation CoMatrix"
     
-    d = os.path.dirname(__file__) +"/../Results/A2/"+file_name+"/"
+    d = os.path.dirname(__file__) +"../results/A2/"+file_name+"/"
     if not os.path.exists(d):
         os.makedirs(d)
     with open(d+"Processed.comatrix_left."+file_name,'w') as output_file:
@@ -129,10 +129,10 @@ def process_file(file_path,file_name, n_tuples, k_clusters, max_num_per_cluster)
     
 
 #For Assignment
-#process_file("../Datasets/Toy_Data.txt", "ToyData", 10, 5, 5)
-#process_file("../Datasets/Telugu.txt", "Telugu", 250, 50, 25)
-process_file("../Datasets/English.txt", "English", 250, 50, 25)
-#process_file("../Datasets/Hindi.txt", "Hindi", 250, 50, 25)
+#process_file("../datasets/Toy_Data.txt", "ToyData", 10, 5, 5)
+#process_file("../datasets/Telugu.txt", "Telugu", 250, 50, 25)
+process_file("../datasets/English.txt", "English", 250, 50, 25)
+#process_file("../datasets/Hindi.txt", "Hindi", 250, 50, 25)
 
 
 endtime = time.asctime( time.localtime(time.time()) )

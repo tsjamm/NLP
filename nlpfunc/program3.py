@@ -51,7 +51,7 @@ class LanguageModelSmoothing(object):
                 self.freq_map_t = nlpfunc.get_frequency_map(input_trigrams,self.freq_map_t)
 
     def execute_on_test_file(self):
-        d = os.path.dirname(__file__) +"/../Results/A3/"+self.output_name+"/"
+        d = os.path.dirname(__file__) +"../results/A3/"+self.output_name+"/"
         if not os.path.exists(d):
             os.makedirs(d)
        
@@ -111,11 +111,11 @@ class LanguageModelSmoothing(object):
 
 #For Assignment
 # First Parameter is Training Data, Second is Test Data, Third is output name
-#langModel = LanguageModelSmoothing("../Datasets/Toy_Data.txt","../Datasets/LM/English.txt","ToyData")
-#langModel = LanguageModelSmoothing("../Datasets/English.txt","../Datasets/LM/English.txt","English")
-langModel = LanguageModelSmoothing("../Datasets/Hindi.txt","../Datasets/LM/Hindi.txt","Hindi")
-#langModel = LanguageModelSmoothing("../Datasets/Telugu.txt","../Datasets/LM/Telugu.txt","Telugu")
-
+#langModel = LanguageModelSmoothing("../datasets/Toy_Data.txt","../test-data/English.txt","ToyData")
+#langModel = LanguageModelSmoothing("../datasets/English.txt","../test-data/English.txt","English")
+#langModel = LanguageModelSmoothing("../datasets/Hindi.txt","../test-data/Hindi.txt","Hindi")
+#langModel = LanguageModelSmoothing("../datasets/Telugu.txt","../test-data/Telugu.txt","Telugu")
+langModel = LanguageModelSmoothing("../datasets/Telugu.txt","../evalutionData/Telugu_UTF.txt","TeluguEvaluation")
 
 
 endtime = time.asctime( time.localtime(time.time()) )
